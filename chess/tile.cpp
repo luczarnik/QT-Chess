@@ -4,17 +4,20 @@
 #include "piecewidget.h"
 #include "utils.h"
 #include "QBoxLayout"
-
+#include "QTextCursor"
+#include "choosetile.h"
 
 
 Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* chessboard)
     :pieceType(Chess::PIECE::BLANK), position(pos),chessboard(chessboard),
       QLabel(parent)
 {
+
+    chooseTile=nullptr;
     pieceWidget=nullptr;
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     setAcceptDrops(true);
-    new QBoxLayout(QBoxLayout::LeftToRight,this);
+    //new QBoxLayout(QBoxLayout::LeftToRight,this);
     if (color == Chess::COLOR::BLACK)   setStyleSheet("QLabel { background-color : green; }");
     else                                setStyleSheet("QLabel { background-color : white; }");
 
@@ -23,6 +26,7 @@ Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* 
 
 void Tile::mousePressEvent(QMouseEvent * event)
 {
+    emit clicked();
     if (pieceType == Chess::PIECE::BLANK) return ;
 
     QMimeData *mimeData = new QMimeData;
@@ -55,9 +59,15 @@ void Tile::mousePressEvent(QMouseEvent * event)
     dataStream << position.x<<position.y;
     mimeData->setData("pos",itemData);
 
+    QCursor cursor(Qt::ArrowCursor);
+    QPixmap cursorPixmap=cursor.pixmap();
+
 
     QPixmap pixmap = pieceWidget->pixmap(Qt::ReturnByValue);
     QDrag *drag = new QDrag(this);
+
+    drag->setDragCursor(cursorPixmap,Qt::MoveAction);
+    drag->setDragCursor(cursorPixmap,Qt::IgnoreAction);
     drag->setMimeData(mimeData);
     drag->setPixmap(pixmap);
     drag->setHotSpot(QPoint(pixmap.width()/2,pixmap.height()/2));
@@ -76,6 +86,8 @@ void Tile::mousePressEvent(QMouseEvent * event)
         pieceWidget->deleteLater();
         pieceWidget=nullptr;
     }
+
+    event->ignore();
 }
 
 void Tile::dropEvent(QDropEvent* event)
@@ -99,9 +111,10 @@ void Tile::dropEvent(QDropEvent* event)
     if (!chessboard->move(from,position)) return;
 
     event->acceptProposedAction();
-    pieceColor=color;   pieceType=type;
+    pieceColor=chessboard->color_at(position);
+    pieceType=chessboard->piece_at(position);
     if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
-    pieceWidget=new PieceWidget(type,color,this);
+    pieceWidget=new PieceWidget(pieceType,pieceColor,this);
     pieceWidget->show();
 
 }
@@ -116,9 +129,9 @@ void Tile::placePiece(Chess::PIECE type,Chess::COLOR color)
 {
     if (pieceWidget!=nullptr) pieceWidget->deleteLater();
     pieceWidget=nullptr;
-    if (type == Chess::BLANK ) return;
     pieceType=type;
     pieceColor=color;
+    if (type == Chess::BLANK ) return;
 
     pieceWidget = new PieceWidget(type,color,this);
     pieceWidget->show();
@@ -127,4 +140,7 @@ void Tile::resizeEvent(QResizeEvent *event)
 {
     if (pieceType==Chess::PIECE::BLANK) return;
     pieceWidget->resizeEvent(event);
+
+    if (chooseTile == nullptr) return;
+    chooseTile->resizeEvent(event);
 }

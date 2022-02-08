@@ -24,6 +24,8 @@ set(PROJECT_SOURCES
         chesswidget.h       chesswidget.cpp
         tile.h              tile.cpp
         piecewidget.h       piecewidget.cpp
+
+        choosetile.h        choosetile.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

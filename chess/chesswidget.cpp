@@ -5,6 +5,7 @@
 #include "QGridLayout"
 #include "piecewidget.h"
 #include "chessboard.h"
+#include "choosetile.h"
 
 using namespace Chess;
 
@@ -20,8 +21,6 @@ ChessWidget::ChessWidget(QWidget *parent)
     chessboard=new  Chess::ChessBoard(this);
     connect(chessboard,&ChessBoard::s_add_piece,this,&ChessWidget::piece_added);
     connect(chessboard,&ChessBoard::s_remove_piece,this,&ChessWidget::piece_removed);
-   // connect(chessboard,&ChessBoard::s_add_piece,this,&ChessWidget::piece_added);
-   // connect(chessboard,&ChessBoard::s_add_piece,this,&ChessWidget::piece_added);
 
     QGridLayout * layout = new QGridLayout();
     setLayout(layout);
@@ -33,11 +32,12 @@ ChessWidget::ChessWidget(QWidget *parent)
     {
         for (int j=0;j<8;j++)
         {
-            pos.x=7-i; pos.y=7-j;
+            pos.x=7-i; pos.y=j;
             if (white) tile =new Tile(this,Chess::COLOR::WHITE,pos,chessboard);
             else        tile =new Tile(this,Chess::COLOR::BLACK,pos,chessboard);
             layout->addWidget(tile,i,j);
-            tiles[Chess::Pos(7-i,7-j)]=tile;
+            tiles[Chess::Pos(7-i,j)]=tile;
+            connect(tile,&Tile::clicked,this,&ChessWidget::hide_promotion);
 
             white=!white;
         }
@@ -45,8 +45,12 @@ ChessWidget::ChessWidget(QWidget *parent)
     }
 
 
-    load_chessboard();
 
+    load_chessboard();
+    repaint();
+
+    for (int i=0;i<4;i++) promotionTile[i]=nullptr;
+    connect(chessboard,&ChessBoard::promotion,this,&ChessWidget::choose_promotion);
 }
 
 void ChessWidget::load_chessboard()
@@ -60,7 +64,7 @@ void ChessWidget::load_chessboard()
         {
             pos.x =i; pos.y=j;
             piece = chessboard->piece_at(pos);
-            if ( piece== Chess::PIECE::BLANK) continue;
+            if ( piece== Chess::BLANK) continue;
             color = chessboard->color_at(pos);
             tiles[pos]->placePiece(piece,color);
         }
@@ -77,4 +81,52 @@ void ChessWidget::piece_removed(const Chess::Pos& pos)
     tiles[pos]->placePiece(Chess::BLANK,Chess::WHITE);
 }
 
+void ChessWidget::choose_promotion(const Pos& pos)
+{
+    if (pos.x!=0 && pos.x!=7) return;
+    int x=pos.x,y =pos.y;
+    if (x==0)
+    {
+        promotionTile[0]=new ChooseTile(tiles[Pos(x,y)],Chess::QUEEN,Chess::BLACK,chessboard);
+        promotionTile[1]=new ChooseTile(tiles[Pos(x+1,y)],Chess::ROOK,Chess::BLACK,chessboard);
+        promotionTile[2]=new ChooseTile(tiles[Pos(x+2,y)],Chess::KNIGHT,Chess::BLACK,chessboard);
+        promotionTile[3]=new ChooseTile(tiles[Pos(x+3,y)],Chess::BISHOP,Chess::BLACK,chessboard);
+        for (int i=0;i<4;i++)
+            tiles[Pos(x+i,y)]->setChooseTile(promotionTile[i]);
 
+    }
+    else
+    {
+        promotionTile[0]=new ChooseTile(tiles[Pos(x,y)],Chess::QUEEN,Chess::BLACK,chessboard);
+        promotionTile[1]=new ChooseTile(tiles[Pos(x-1,y)],Chess::ROOK,Chess::BLACK,chessboard);
+        promotionTile[2]=new ChooseTile(tiles[Pos(x-2,y)],Chess::KNIGHT,Chess::BLACK,chessboard);
+        promotionTile[3]=new ChooseTile(tiles[Pos(x-3,y)],Chess::BISHOP,Chess::BLACK,chessboard);
+        for (int i=0;i<4;i++)
+            tiles[Pos(x-i,y)]->setChooseTile(promotionTile[i]);
+    }
+
+    for (int i=0;i<4;i++)
+    {
+        connect(promotionTile[i],&ChooseTile::clicked,this,&ChessWidget::hide_promotion);
+        promotionTile[i]->show();
+    }
+    promotion_position=pos;
+    repaint();
+}
+
+void ChessWidget::hide_promotion()
+{
+    if (promotionTile[0]==nullptr) return;
+    for (int i=0;i<4;i++)
+    {
+        disconnect(promotionTile[i],&ChooseTile::clicked,this,&ChessWidget::hide_promotion);
+        promotionTile[i]->hide();
+        promotionTile[i]->deleteLater();
+        promotionTile[i]=nullptr;
+    }
+    if (promotion_position.x==0)
+        for (int i=0;i<4;i++) tiles[Pos(promotion_position.x+i,promotion_position.y)]->removeChooseTile();
+    else
+        for (int i=0;i<4;i++) tiles[Pos(promotion_position.x-i,promotion_position.y)]->removeChooseTile();
+    repaint();
+}

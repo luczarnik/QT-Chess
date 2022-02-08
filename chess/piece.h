@@ -71,7 +71,7 @@ public:
 class Bishop  : public Piece
 {
 public:
-    explicit Bishop(Chess::COLOR COLOR, Chess::Pos&& pos)
+    explicit Bishop(Chess::COLOR COLOR, Chess::Pos pos)
         : Piece(Chess::PIECE::BISHOP,COLOR,pos){}
 
     virtual bool is_legal(const Chess::Pos& to) const;
@@ -81,7 +81,7 @@ class King  : public Piece
 {
     bool castle;
 public:
-    explicit King(Chess::COLOR COLOR, Chess::Pos&& pos)
+    explicit King(Chess::COLOR COLOR, const Chess::Pos pos)
         :castle(true),Piece(Chess::PIECE::KING,COLOR,pos){}
 
     virtual bool is_legal(const Chess::Pos& to) const;

@@ -29,6 +29,7 @@ public:
 
 private:
     void initialize_pieces();
+
     bool castle(const Pos& pos);
     bool castle_rook(const Pos&);
     void perform_castle(const Pos&);
@@ -41,6 +42,9 @@ private:
     bool about_to_en_passant;
     void perform_en_passant(const Pos& Pos);
     bool can_en_passant(const Pos& Pos);
+
+    Pos promotion_from;
+    Pos promotion_to;
 
     bool w_checked_by_penetrable;
     bool w_checked_by_normal;
@@ -73,13 +77,18 @@ private:
     friend class Queen;
 
 public slots:
+    void promote(PIECE piece);
 
 public :
 signals:
-    void s_remove_piece(const Pos& pos);// in most cases view can by itself easly display and hide pieces
-    void s_add_piece(const Pos& pos); // due to drag and drop implementation, but special moves like castle
+    // in most cases view can by itself easly display and hide pieces due to drag and drop implementation, but special moves like castle
     // requires addditional steps which are taken in chess engine so there is no need to implement them once again
     // in view
+    void s_remove_piece(const Pos& pos);
+    void s_add_piece(const Pos& pos);
+
+    void promotion(const Pos& to);
+
 
    // void s_checkmate();
     //void s_stalemate();

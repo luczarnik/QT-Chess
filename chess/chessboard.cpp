@@ -34,8 +34,8 @@ void ChessBoard::initialize_pieces()
     pieces[Pos(0,0)]=new Rook    (WHITE,Pos(0,0));
     pieces[Pos(0,1)]=new Knight  (WHITE,Pos(0,1));
     pieces[Pos(0,2)]=new Bishop  (WHITE,Pos(0,2));
-    pieces[Pos(0,4)]=new Queen   (WHITE,Pos(0,4));
-    pieces[Pos(0,3)]=new King    (WHITE,Pos(0,3));
+    pieces[Pos(0,3)]=new Queen   (WHITE,Pos(0,3));
+    pieces[Pos(0,4)]=new King    (WHITE,Pos(0,4));
     pieces[Pos(0,5)]=new Bishop  (WHITE,Pos(0,5));
     pieces[Pos(0,6)]=new Knight  (WHITE,Pos(0,6));
     pieces[Pos(0,7)]=new Rook    (WHITE,Pos(0,7));
@@ -43,21 +43,21 @@ void ChessBoard::initialize_pieces()
     pieces[Pos(7,0)]=new Rook    (BLACK,Pos(7,0));
     pieces[Pos(7,1)]=new Knight  (BLACK,Pos(7,1));
     pieces[Pos(7,2)]=new Bishop  (BLACK,Pos(7,2));
-    pieces[Pos(7,4)]=new Queen   (BLACK,Pos(7,4));
-    pieces[Pos(7,3)]=new King    (BLACK,Pos(7,3));
+    pieces[Pos(7,3)]=new Queen   (BLACK,Pos(7,3));
+    pieces[Pos(7,4)]=new King    (BLACK,Pos(7,4));
     pieces[Pos(7,5)]=new Bishop  (BLACK,Pos(7,5));
     pieces[Pos(7,6)]=new Knight  (BLACK,Pos(7,6));
     pieces[Pos(7,7)]=new Rook    (BLACK,Pos(7,7));
 
-    w_king=pieces[Pos(0,3)]; b_king=pieces[Pos(7,3)];
+    w_king=pieces[Pos(0,4)]; b_king=pieces[Pos(7,4)];
     w_penetrable.insert(Pos(0,2));
-    w_penetrable.insert(Pos(0,4));
+    w_penetrable.insert(Pos(0,3));
     w_penetrable.insert(Pos(0,5));
     w_penetrable.insert(Pos(0,0));
     w_penetrable.insert(Pos(0,7));
 
     b_penetrable.insert(Pos(7,2));
-    b_penetrable.insert(Pos(7,4));
+    b_penetrable.insert(Pos(7,3));
     b_penetrable.insert(Pos(7,5));
     b_penetrable.insert(Pos(7,0));
     b_penetrable.insert(Pos(7,7));
@@ -85,6 +85,9 @@ void ChessBoard::initialize_pieces()
 bool ChessBoard::move(const Pos& from, const Pos& to )
 {
     if (!is_legal(from,to)) return false;
+
+    Piece* piece=pieces[from];
+
     b_king_attacked_by_non_penetrable=nullptr;
     w_king_attacked_by_non_penetrable=nullptr;
     b_en_passant=false;
@@ -103,10 +106,18 @@ bool ChessBoard::move(const Pos& from, const Pos& to )
         about_to_en_passant=false;
     }
 
-    if (pieces.find(to)!=pieces.end())  remove_piece(to);
+    if ((piece->get_type()==PON && MOVE_TURN == WHITE && to.x==7)
+        || (piece->get_type()==PON && MOVE_TURN==BLACK && to.x==0))
+    {
+        promotion_from=from;
+        promotion_to = to;
+        emit promotion(to);
+        switch_turn();
+        return false;
+    }
 
-
-    Piece* piece=pieces[from];
+    if (pieces.find(to)!=pieces.end())
+        remove_piece(to);
 
     remove_piece(from);
     insert_piece(piece,to);
@@ -328,7 +339,7 @@ void ChessBoard::insert_piece(Piece* piece, const Pos& pos)
 
 bool ChessBoard::castle(const Pos& pos)
 {
-    if (!(pos == Pos(0,1) || pos==Pos(0,5) || pos == Pos(7,1) || pos ==Pos(7,5))) return false;
+    if (!(pos == Pos(0,2) || pos==Pos(0,6) || pos == Pos(7,2) || pos ==Pos(7,6))) return false;
 
 
 
@@ -338,10 +349,10 @@ bool ChessBoard::castle(const Pos& pos)
         pieces[pos]->mark_attacked(attacked_by_white,occupied);
 
 
-    if (pos == Pos(0,1) && !attacked_by_black[0][1] && !attacked_by_black[0][2] && !attacked_by_black[0][3]) return castle_rook(Pos(0,0));
-    if (pos == Pos(0,5) && !attacked_by_black[0][3] && !attacked_by_black[0][4] && !attacked_by_black[0][5]) return castle_rook(Pos(0,7));
-    if (pos == Pos(7,1) && !attacked_by_white[7][1] && !attacked_by_white[7][2] && !attacked_by_white[7][3]) return castle_rook(Pos(7,0));
-    if (pos == Pos(7,5) && !attacked_by_white[7][3] && !attacked_by_white[7][4] && !attacked_by_white[7][5]) return castle_rook(Pos(7,7));
+    if (pos == Pos(0,2) && !attacked_by_black[0][2] && !attacked_by_black[0][3] && !attacked_by_black[0][4]) return castle_rook(Pos(0,0));
+    if (pos == Pos(0,6) && !attacked_by_black[0][4] && !attacked_by_black[0][5] && !attacked_by_black[0][6]) return castle_rook(Pos(0,7));
+    if (pos == Pos(7,2) && !attacked_by_white[7][2] && !attacked_by_white[7][3] && !attacked_by_white[7][4]) return castle_rook(Pos(7,0));
+    if (pos == Pos(7,6) && !attacked_by_white[7][4] && !attacked_by_white[7][5] && !attacked_by_white[7][6]) return castle_rook(Pos(7,7));
 
     return false;
 }
@@ -362,69 +373,69 @@ void ChessBoard::perform_castle(const Pos & pos)
 {
     qInfo()<<"Cos";
     Piece* rook , *king;
-    if (pos==Pos(0,1))
+    if (pos==Pos(0,2))
     {
         rook=pieces[Pos(0,0)];
-        king=pieces[Pos(0,3)];
+        king=pieces[Pos(0,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
         remove_piece(Pos(0,0));
-        remove_piece(Pos(0,3));
-        insert_piece(king,Pos(0,1));
-        insert_piece(rook,Pos(0,2));
+        remove_piece(Pos(0,4));
+        insert_piece(king,Pos(0,2));
+        insert_piece(rook,Pos(0,3));
 
-        emit s_remove_piece(Pos(0,3));
+        emit s_remove_piece(Pos(0,4));
         emit s_remove_piece(Pos(0,0));
-        emit s_add_piece(Pos(0,1));
         emit s_add_piece(Pos(0,2));
+        emit s_add_piece(Pos(0,3));
     }
-    else if (pos==Pos(0,5))
+    else if (pos==Pos(0,6))
     {
         rook=pieces[Pos(0,7)];
-        king=pieces[Pos(0,3)];
+        king=pieces[Pos(0,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
         remove_piece(Pos(0,7));
-        remove_piece(Pos(0,3));
-        insert_piece(king,Pos(0,5));
-        insert_piece(rook,Pos(0,4));
+        remove_piece(Pos(0,4));
+        insert_piece(king,Pos(0,6));
+        insert_piece(rook,Pos(0,5));
 
-        emit s_remove_piece(Pos(0,3));
+        emit s_remove_piece(Pos(0,4));
         emit s_remove_piece(Pos(0,7));
-        emit s_add_piece(Pos(0,4));
         emit s_add_piece(Pos(0,5));
+        emit s_add_piece(Pos(0,6));
     }
-    else if (pos==Pos(7,1))
+    else if (pos==Pos(7,2))
     {
         rook=pieces[Pos(7,0)];
-        king=pieces[Pos(7,3)];
+        king=pieces[Pos(7,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
         remove_piece(Pos(7,0));
-        remove_piece(Pos(7,3));
-        insert_piece(king,Pos(7,1));
-        insert_piece(rook,Pos(7,2));
+        remove_piece(Pos(7,4));
+        insert_piece(king,Pos(7,2));
+        insert_piece(rook,Pos(7,3));
 
-        emit s_remove_piece(Pos(7,3));
+        emit s_remove_piece(Pos(7,4));
         emit s_remove_piece(Pos(7,0));
-        emit s_add_piece(Pos(7,1));
         emit s_add_piece(Pos(7,2));
+        emit s_add_piece(Pos(7,3));
     }
-    else if (pos==Pos(7,5))
+    else if (pos==Pos(7,6))
     {
         rook=pieces[Pos(7,7)];
-        king=pieces[Pos(7,3)];
+        king=pieces[Pos(7,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
         remove_piece(Pos(7,7));
-        remove_piece(Pos(7,3));
-        insert_piece(king,Pos(7,5));
-        insert_piece(rook,Pos(7,4));
+        remove_piece(Pos(7,4));
+        insert_piece(king,Pos(7,6));
+        insert_piece(rook,Pos(7,5));
 
-        emit s_remove_piece(Pos(7,3));
+        emit s_remove_piece(Pos(7,4));
         emit s_remove_piece(Pos(7,7));
-        emit s_add_piece(Pos(7,4));
         emit s_add_piece(Pos(7,5));
+        emit s_add_piece(Pos(7,6));
     }
 }
 
@@ -448,4 +459,27 @@ void ChessBoard::perform_en_passant(const Pos &pos)
         emit s_remove_piece(Pos(pos.x,pos.y-1));
     }
 
+}
+
+void ChessBoard::promote(PIECE piece)
+{
+
+   if (pieces.find(promotion_to)!= pieces.end()) remove_piece(promotion_to);
+   remove_piece(promotion_from);
+   Piece *nowy;
+   COLOR color;
+   color = promotion_to.x==0 ? BLACK:WHITE;
+
+   switch (piece)
+   {
+   case QUEEN: nowy= new Queen(color,promotion_to); break;
+   case ROOK:  nowy= new Rook(color,promotion_to); break;
+   case KNIGHT: nowy = new Knight(color,promotion_to); break;
+   case BISHOP: nowy = new Bishop(color,promotion_to); break;
+   }
+
+
+   insert_piece(nowy,promotion_to);//
+   emit s_remove_piece(promotion_from);
+   emit s_add_piece(promotion_to);
 }

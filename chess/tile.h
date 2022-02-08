@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "piecewidget.h"
 #include "chessboard.h"
+#include "choosetile.h"
 
 
 
@@ -19,6 +20,12 @@ public:
     void dropEvent(QDropEvent*) override;
     void dragEnterEvent(QDragEnterEvent*) override;
     void placePiece(Chess::PIECE,Chess::COLOR);
+    void create_context_menu();
+    void hide_context_menu();
+    void setChooseTile(ChooseTile* ch) {chooseTile=ch;}
+    void removeChooseTile() {chooseTile=nullptr;}
+signals:
+    void clicked();
 
 private:
     Chess::COLOR pieceColor;
@@ -26,6 +33,7 @@ private:
     PieceWidget *pieceWidget;
     Chess::Pos position;
     Chess::ChessBoard* chessboard;
+    ChooseTile* chooseTile;
 
     void setEmoty();
     void setFigure(QImage image);

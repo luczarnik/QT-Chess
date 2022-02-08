@@ -5,6 +5,7 @@
 #include <map>
 #include "chessboard.h"
 #include "tile.h"
+#include "utils.h"
 
 
 
@@ -27,8 +28,14 @@ private:
     std::unordered_map<Chess::Pos,Tile*> tiles;
     void load_chessboard();
 
+    bool promotion_menu_active;
+    Chess::Pos promotion_position;
+    ChooseTile* promotionTile[4];
+
 public slots:
     void piece_added(const Chess::Pos&);
     void piece_removed(const Chess::Pos&);
+    void choose_promotion(const Chess::Pos&);
+    void hide_promotion();
 };
 #endif // CHESSWIDGET_H

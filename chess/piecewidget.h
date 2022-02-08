@@ -24,4 +24,5 @@ private:
     QImage* image;
 };
 
+
 #endif // PIECEWIDGET_H

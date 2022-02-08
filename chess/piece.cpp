@@ -52,10 +52,10 @@ bool King::is_legal(const Pos &to) const
     if (castle)
     {
         if ( color==WHITE &&
-             ((position.x==0&& position.y==3)&& (to.x==0 && to .y==1 || to.x ==0 && to.y==5))) return true;
+             ((position.x==0&& position.y==4)&& (to.x==0 && (to.y==2 || to.y==6)))) return true;
 
         if (color == BLACK &&
-                ((position.x==7&& position.y==3)&& (to.x==7 && to .y==1 || to.x ==7 && to.y==5))) return true;
+                ((position.x==7&& position.y==4)&& (to.x==7 && (to.y==2 || to.y==6)))) return true;
     }
 
 
