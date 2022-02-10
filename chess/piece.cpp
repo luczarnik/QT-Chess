@@ -77,16 +77,10 @@ bool Queen::is_legal(const Pos &to) const
 
 void Pon::mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const
 {
-    if (color == COLOR::WHITE)
-    {
-        if (position.x>0) chessboard[position.x-1][position.y+1]=true;
-        if (position.x<7) chessboard[position.x+1][position.y+1]=true;
-    }
-    else
-    {
-        if (position.x>0) chessboard[position.x-1][position.y-1]=true;
-        if (position.x<7) chessboard[position.x+1][position.y-1]=true;
-    }
+    int add=color==WHITE?1:-1;
+
+    if (position.y>0) chessboard[position.x+add][position.y-1]=true;
+    if (position.y<7) chessboard[position.x+add][position.y+1]=true;
 }
 
 void Knight::mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const
@@ -131,8 +125,6 @@ void Bishop::mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const
         chessboard[i][j]=true;
         if (occupied[i][j]==true) break;
     }
-   // qInfo()<<"bishop";
-   // display_table(chessboard);
 }
 
 void Rook::mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const
@@ -194,7 +186,96 @@ void King::mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const
     }
 }
 
+std::list<Move> Pon::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+    int add= color==WHITE? 1:-1;
+    ls.push_back(Move(position,Pos(position.x+add,position.y)));
+    ls.push_back(Move(position,Pos(position.x+add,position.y+1)));
+    ls.push_back(Move(position,Pos(position.x+add,position.y-1)));
+    return ls;
+}
 
+std::list<Move> Knight::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+    short xdist[] ={1,2,2,1,-1,-2,-2,-1};
+    short ydist[] ={2,1,-1,-2,-2,-1,1,2};
+    Pos pos;
+
+    for (int i=0;i<8;i++)
+    {
+        pos = {xdist[i]+position.x,ydist[i]+position.y};
+        ls.push_back(Move(position,pos));
+    }
+    return ls;
+}
+
+std::list<Move> King::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+    short xdist[]{1,1,1,0,0,-1,-1,-1};
+    short ydist[]{-1,0,1,-1,1,-1,0,1};
+    Pos pos;
+
+    for (int i=0;i<8;i++)
+    {
+        pos = {xdist[i]+position.x,ydist[i]+position.y};
+        ls.push_back(Move(position,pos));
+    }
+    return ls;
+}
+
+std::list<Move> Bishop::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+
+    int direction_x[]{1,1,-1,-1};
+    int direction_y[]{-1,1,1,-1};
+
+    for (int k=0;k<4;k++)
+    for (int i=position.x+direction_x[k],j=position.y+direction_y[k];
+         i<8&&j<8;i+=direction_x[k],j+=direction_y[k])
+    {
+        ls.push_back(Move(position,Pos(i,j)));
+        if (occupied[i][j]==true) break;
+    }
+    return ls;
+}
+
+std::list<Move> Rook::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+
+    int direction_x[]{1,-1,0,0};
+    int direction_y[]{0,0,1,-1};
+
+    for (int k=0;k<4;k++)
+    for (int i=position.x+direction_x[k],j=position.y+direction_y[k];
+         i<8&&j<8;i+=direction_x[k],j+=direction_y[k])
+    {
+        ls.push_back(Move(position,Pos(i,j)));
+        if (occupied[i][j]==true) break;
+    }
+    return ls;
+}
+
+std::list<Move> Queen::moveList(bool occupied[8][8]) const
+{
+    std::list <Move> ls;
+
+    int direction_x[]{1,-1,0,0,1,1,-1,-1};
+    int direction_y[]{0,0,1,-1,-1,1,1,-1};
+
+    for (int k=0;k<8;k++)
+    for (int i=position.x+direction_x[k],j=position.y+direction_y[k];
+         i<8&&j<8;i+=direction_x[k],j+=direction_y[k])
+    {
+        ls.push_back(Move(position,Pos(i,j)));
+        if (occupied[i][j]==true) break;
+    }
+    return ls;
+}
 
 
 

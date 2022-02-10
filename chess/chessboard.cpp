@@ -5,6 +5,8 @@
 #include "QtDebug"
 #include "QDebug"
 #include <algorithm>
+#include <list>
+
 
 
 
@@ -73,9 +75,13 @@ void ChessBoard::initialize_pieces()
 
         w_pieces.insert(Pos(0,i));
         w_pieces.insert(Pos(1,i));
+        w_pieces_non_volatile.insert(Pos(0,i));
+        w_pieces_non_volatile.insert(Pos(1,i));
 
         b_pieces.insert(Pos(7,i));
         b_pieces.insert(Pos(6,i));
+        b_pieces_non_volatile.insert(Pos(7,i));
+        b_pieces_non_volatile.insert(Pos(6,i));
     }
 
     b_king_attacked_by_non_penetrable=nullptr;
@@ -112,15 +118,14 @@ bool ChessBoard::move(const Pos& from, const Pos& to )
         promotion_from=from;
         promotion_to = to;
         emit promotion(to);
-        switch_turn();
         return false;
     }
 
     if (pieces.find(to)!=pieces.end())
-        remove_piece(to);
+        hard_remove_piece(to);
 
-    remove_piece(from);
-    insert_piece(piece,to);
+    hard_remove_piece(from);
+    hard_insert_piece(piece,to);
 
     if (piece->get_type()== ROOK) dynamic_cast<Rook*>(piece)->forbidd_castle();
     else if (piece->get_type()==KING) dynamic_cast<King*>(piece)->forbidd_castle();
@@ -154,6 +159,7 @@ bool ChessBoard::move(const Pos& from, const Pos& to )
     }
 
     switch_turn();
+    if (!haveMoves()) qInfo()<<"The end";
 
     // checks if there are legal moves if there are not it's stalemate if king wasn't checkd or checkmate if he was
 
@@ -161,7 +167,8 @@ bool ChessBoard::move(const Pos& from, const Pos& to )
 }
 
 bool ChessBoard::is_legal(const Pos& from, const Pos& to)
-{  
+{
+    bool answer=true;
     //if (pieces.find(from) == pieces.end()) return false;
     if (MOVE_TURN==WHITE)   refresh_chessboard(attacked_by_black);
     else                    refresh_chessboard(attacked_by_white);
@@ -234,11 +241,16 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
         }
         else
         {
-            if (enemy!=nullptr) return false;
+            if (enemy!=nullptr) answer=false;
             if (abs(from.x-to.x)==2)
             {
-                if (MOVE_TURN==WHITE && occupied[from.x+1][from.y]) return false;
-                if (MOVE_TURN==BLACK && occupied[from.x-1][from.y]) return false;
+                if (MOVE_TURN==WHITE && occupied[from.x+1][from.y]) answer=false;
+                if (MOVE_TURN==BLACK && occupied[from.x-1][from.y]) answer=false;
+            }
+            if (answer == false)
+            {
+                insert_piece(enemy,to);
+                return false;
             }
         }
 
@@ -247,7 +259,7 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
     remove_piece(from);
     insert_piece(piece,to);
 
-    bool answer;
+
     Pos pos;
     if (color==WHITE)
     {
@@ -275,7 +287,7 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
             pieces[pos]->mark_attacked(attacked_by_white,occupied);
 
         pos = b_king->get_pos();
-        display_table(attacked_by_white);
+        //display_table(attacked_by_white);
 
         if (attacked_by_white[pos.x][pos.y]) answer = false;
         else answer = true;
@@ -292,6 +304,15 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
     return answer;
 }
 
+bool ChessBoard::is_legal_neutral(const Chess::Move move)
+{
+    bool a_b_c=about_to_castle, a_b_e=about_to_en_passant;
+    bool ans = is_legal(move.from,move.to);
+    about_to_castle=a_b_c;
+    about_to_en_passant=a_b_e;
+    return ans;
+}
+
 const PIECE ChessBoard::piece_at(const Pos& pos)
 {
     if (pieces.find(pos) == pieces.end()) return BLANK;
@@ -300,7 +321,7 @@ const PIECE ChessBoard::piece_at(const Pos& pos)
 }
 const COLOR ChessBoard::color_at(const Pos& pos)
 {
-    if (pieces.find(pos) == pieces.end()) exit(0);
+    if (pieces.find(pos) == pieces.end()) return WHITE;
 
     return pieces[pos]->get_color();
 }
@@ -322,6 +343,15 @@ void ChessBoard::remove_piece(const Pos& pos)
     else                             b_penetrable.erase(pos);
     //delete piece;
 }
+void ChessBoard::hard_remove_piece(const Pos& pos)
+{
+    Piece *piece = pieces[pos];
+    remove_piece(pos);
+    if (piece->get_color()==WHITE) w_pieces_non_volatile.erase(pos);
+    else b_pieces_non_volatile.erase(pos);
+
+}
+
 void ChessBoard::insert_piece(Piece* piece, const Pos& pos)
 {
     pieces[pos]=piece;
@@ -335,6 +365,12 @@ void ChessBoard::insert_piece(Piece* piece, const Pos& pos)
 
     if (piece->get_color()==WHITE) w_penetrable.insert(pos);
     else b_penetrable.insert(pos);
+}
+void ChessBoard::hard_insert_piece(Piece* piece, const Pos& pos)
+{
+    insert_piece(piece,pos);
+    if (piece->get_color()==WHITE) w_pieces_non_volatile.insert(pos);
+    else b_pieces_non_volatile.insert(pos);
 }
 
 bool ChessBoard::castle(const Pos& pos)
@@ -379,10 +415,10 @@ void ChessBoard::perform_castle(const Pos & pos)
         king=pieces[Pos(0,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
-        remove_piece(Pos(0,0));
-        remove_piece(Pos(0,4));
-        insert_piece(king,Pos(0,2));
-        insert_piece(rook,Pos(0,3));
+        hard_remove_piece(Pos(0,0));
+        hard_remove_piece(Pos(0,4));
+        hard_insert_piece(king,Pos(0,2));
+        hard_insert_piece(rook,Pos(0,3));
 
         emit s_remove_piece(Pos(0,4));
         emit s_remove_piece(Pos(0,0));
@@ -395,10 +431,10 @@ void ChessBoard::perform_castle(const Pos & pos)
         king=pieces[Pos(0,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
-        remove_piece(Pos(0,7));
-        remove_piece(Pos(0,4));
-        insert_piece(king,Pos(0,6));
-        insert_piece(rook,Pos(0,5));
+        hard_remove_piece(Pos(0,7));
+        hard_remove_piece(Pos(0,4));
+        hard_insert_piece(king,Pos(0,6));
+        hard_insert_piece(rook,Pos(0,5));
 
         emit s_remove_piece(Pos(0,4));
         emit s_remove_piece(Pos(0,7));
@@ -411,10 +447,10 @@ void ChessBoard::perform_castle(const Pos & pos)
         king=pieces[Pos(7,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
-        remove_piece(Pos(7,0));
-        remove_piece(Pos(7,4));
-        insert_piece(king,Pos(7,2));
-        insert_piece(rook,Pos(7,3));
+        hard_remove_piece(Pos(7,0));
+        hard_remove_piece(Pos(7,4));
+        hard_insert_piece(king,Pos(7,2));
+        hard_insert_piece(rook,Pos(7,3));
 
         emit s_remove_piece(Pos(7,4));
         emit s_remove_piece(Pos(7,0));
@@ -427,10 +463,10 @@ void ChessBoard::perform_castle(const Pos & pos)
         king=pieces[Pos(7,4)];
         dynamic_cast<Rook*>(rook)->forbidd_castle();
         dynamic_cast<King*>(king)->forbidd_castle();
-        remove_piece(Pos(7,7));
-        remove_piece(Pos(7,4));
-        insert_piece(king,Pos(7,6));
-        insert_piece(rook,Pos(7,5));
+        hard_remove_piece(Pos(7,7));
+        hard_remove_piece(Pos(7,4));
+        hard_insert_piece(king,Pos(7,6));
+        hard_insert_piece(rook,Pos(7,5));
 
         emit s_remove_piece(Pos(7,4));
         emit s_remove_piece(Pos(7,7));
@@ -450,12 +486,12 @@ void ChessBoard::perform_en_passant(const Pos &pos)
 {
     if (pos == en_passant[0])
     {
-        remove_piece(Pos(pos.x,pos.y+1));
+        hard_remove_piece(Pos(pos.x,pos.y+1));
         emit s_remove_piece(Pos(pos.x,pos.y+1));
     }
     else
     {
-        remove_piece(Pos(pos.x,pos.y-1));
+        hard_remove_piece(Pos(pos.x,pos.y-1));
         emit s_remove_piece(Pos(pos.x,pos.y-1));
     }
 
@@ -463,7 +499,7 @@ void ChessBoard::perform_en_passant(const Pos &pos)
 
 void ChessBoard::promote(PIECE piece)
 {
-
+   switch_turn();
    if (pieces.find(promotion_to)!= pieces.end()) remove_piece(promotion_to);
    remove_piece(promotion_from);
    Piece *nowy;
@@ -483,3 +519,67 @@ void ChessBoard::promote(PIECE piece)
    emit s_remove_piece(promotion_from);
    emit s_add_piece(promotion_to);
 }
+
+bool ChessBoard::haveMoves()
+{
+    std::list<Move> moves;
+    if ( MOVE_TURN==WHITE)
+    {
+        /*for (auto it = begin(w_pieces);it!=end(w_pieces);it++)
+        {
+            moves=pieces[*it]->moveList(occupied);
+            for (const Move& move:moves) if(is_legal_neutral(move)) return true;
+        }*/
+        for (const Pos &pos : w_pieces_non_volatile)
+        {
+            moves=pieces[pos]->moveList(occupied);
+            for (const Move& move:moves) if(is_legal_neutral(move)) return true;
+        }
+    }
+    else
+    {
+        /*for (auto it = begin(b_pieces);it!=end(b_pieces);it++)
+        {
+            moves=pieces[*it]->moveList(occupied);
+            for (const Move& move:moves) if(is_legal_neutral(move)) return true;
+        }*/
+        for (const Pos &pos : b_pieces_non_volatile)
+        {
+            moves=pieces[pos]->moveList(occupied);
+            for (const Move& move:moves) if(is_legal_neutral(move)) return true;
+        }
+    }
+    return false;
+}
+
+std::list<Move> ChessBoard::movesList()
+{
+    std::list<Move> ans;
+    std::list<Move> moves;
+    if ( MOVE_TURN==WHITE)
+    {
+        \
+        for (Pos pos : w_pieces)
+        {
+            moves=pieces[pos]->moveList(occupied);
+            //for (auto it=begin(moves);it!=end(moves);it++)
+              //  if (!is_legal_neutral(*it)) it =moves.erase(it);
+
+
+            ans.merge(moves);
+        }
+    }
+    else
+    {
+        for (Pos pos : w_pieces)
+        {
+            moves=pieces[pos]->moveList(occupied);
+           // for (auto it=begin(moves);it!=end(moves);it++)
+             //   if (!is_legal_neutral(*it)) it =moves.erase(it);
+
+            ans.merge(moves);
+        }
+    }
+    return ans;
+}
+

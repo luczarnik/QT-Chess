@@ -16,13 +16,15 @@ namespace Chess
 
     struct Pos
     {
+        int x;
+        int y;
         Pos(int x, int y) : x(x),y(y){}
         //Pos(const Pos &other) :x(other.x),y(other.y){}
         //Pos(const Pos && other ) :x(other.x),y(other.y) {}
         Pos(){}
-        //Pos operator=(Pos other){ x= other.x; y=other.y; return other;}
-        int x;
-        int y;
+        Pos(const Pos& other ) :x(other.x),y(other.y){}
+        Pos operator=(Pos other){ x= other.x; y=other.y; return other;}
+
         bool operator==(const Pos &other) const
         {
             return x==other.x && y==other.y;
@@ -35,6 +37,18 @@ namespace Chess
         {
             return 8*x+y;
         }
+    };
+    struct Move
+    {
+        Pos from;
+        Pos to;
+        Move(Pos from, Pos to) : from(from),to(to){}
+        Move(){}
+        bool operator==(const Move&other) const
+        {
+            return from==other.from&&to==other.to;
+        }
+        bool operator<(const Move& other) {return true;}
     };
 
 

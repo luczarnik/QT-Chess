@@ -2,6 +2,7 @@
 #define PIECE_H
 
 #include "utils.h"
+#include <list>
 namespace Chess{
 
 class Piece
@@ -26,6 +27,8 @@ public:
         position.x=pos.x;
         position.y=pos.y;
     }
+
+    virtual std::list<Move> moveList(bool occupied[8][8]) const = 0;
 };
 
 class Pon : public Piece
@@ -36,6 +39,7 @@ public:
 
     virtual bool is_legal(const Chess::Pos& pos)  const ;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const ;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
 
 class Knight : public Piece
@@ -46,6 +50,7 @@ public:
 
     virtual bool is_legal(const Chess::Pos& to) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
 class Rook : public Piece
 {
@@ -56,6 +61,8 @@ public:
 
     virtual bool is_legal(const Chess::Pos& to) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
+
     bool can_castle() {return castle;}
     void forbidd_castle() {castle=false;}
 };
@@ -67,6 +74,7 @@ public:
 
     virtual bool is_legal(const Chess::Pos& to) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
 class Bishop  : public Piece
 {
@@ -76,6 +84,7 @@ public:
 
     virtual bool is_legal(const Chess::Pos& to) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
 class King  : public Piece
 {
@@ -86,6 +95,7 @@ public:
 
     virtual bool is_legal(const Chess::Pos& to) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
+    virtual std::list<Move> moveList(bool occupied[8][8]) const;
 
 
     bool can_castle() {return castle;}

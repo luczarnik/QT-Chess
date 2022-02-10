@@ -12,18 +12,14 @@ PieceWidget::PieceWidget(Chess::PIECE type,Chess::COLOR color,QWidget* parent)
         return;
     resize(parent->size());
 
-    QPixmap pixmap("D:/Qt Projects/chessView/resources/king.png","png");
+    QPixmap pixmap("D:/Qt Projects/chessView/resources/pieces.png","png");
 
 
-    graphicRepresentation= new QPixmap(pixmap.copy(type*45,color*45,45,45));//potential leak
+    graphicRepresentation= new QPixmap(pixmap.copy(type*200,color*200,200,200));//potential leak
     QPixmap scaled = graphicRepresentation->scaled(parentWidget()->width(),
                                                   parentWidget()->height()
                                                   ,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     setPixmap(scaled);
-    setMask(scaled.mask());
-
-
-
 }
 
 void PieceWidget::resizeEvent(QResizeEvent *event)
@@ -31,9 +27,8 @@ void PieceWidget::resizeEvent(QResizeEvent *event)
     int width=parentWidget()->width();
     int height= parentWidget()->height();
 
-    resize(event->size());
+    resize(QSize(width,height));
     if (graphicRepresentation->isNull()) qInfo() << "Faild ";
     QPixmap scaled = graphicRepresentation->scaled(width,height,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     setPixmap(scaled);
-    setMask(scaled.mask());
 }

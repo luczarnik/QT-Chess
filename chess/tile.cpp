@@ -113,7 +113,7 @@ void Tile::dropEvent(QDropEvent* event)
     event->acceptProposedAction();
     pieceColor=chessboard->color_at(position);
     pieceType=chessboard->piece_at(position);
-    if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
+    //if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
     pieceWidget=new PieceWidget(pieceType,pieceColor,this);
     pieceWidget->show();
 

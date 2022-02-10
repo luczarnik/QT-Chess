@@ -13,7 +13,7 @@ void Chess::refresh_chessboard(bool tab[8][8])
 }
 bool Chess::is_in_board(const Pos& pos)
 {
-    return !((pos.x<0 || pos.x >7) && (pos.y<0 || pos.y >7));
+    return (!(pos.x<0 || pos.x >7) && !(pos.y<0 || pos.y >7));
 }
 
 void Chess::display_table(bool tab[8][8])

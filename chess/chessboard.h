@@ -7,6 +7,7 @@
 #include "piece.h"
 #include <set>
 #include "QObject"
+#include <list>
 
 namespace Chess
 {
@@ -19,16 +20,23 @@ public:
     explicit ChessBoard(QObject*);
 
     bool is_legal(const Chess::Pos& from,const Chess::Pos& to) ; // does piece move outside board or ally location or discovers check for own king ?
+    bool is_legal_neutral(const Chess::Move);
     bool is_mate() const;
     bool move(const Chess::Pos& from,const  Chess::Pos&to);
     const PIECE piece_at(const Chess::Pos&) ;// wymysl cos lepszego potem
     const COLOR color_at(const Chess::Pos&) ;
-    void remove_piece(const Chess::Pos&);
-    void insert_piece(Piece*,const Chess::Pos&);
+    std::list<Move> movesList();
+
 
 
 private:
     void initialize_pieces();
+
+
+    void remove_piece(const Chess::Pos&);
+    void hard_remove_piece(const Chess::Pos&);
+    void insert_piece(Piece*,const Chess::Pos&);
+    void hard_insert_piece(Piece*,const Chess::Pos&);
 
     bool castle(const Pos& pos);
     bool castle_rook(const Pos&);
@@ -58,9 +66,13 @@ private:
 
     std::unordered_set<Pos> b_penetrable; //pieces which can see through entire raw or diagonal
     std::unordered_set<Pos> w_penetrable;
+    bool haveMoves();
 
-    std::unordered_set<Pos> b_pieces;
+    std::unordered_set<Pos> b_pieces;//changes when we check if move is legal
+    std::unordered_set<Pos> b_pieces_non_volatile;//changes only if we decided to load move into the engine
     std::unordered_set<Pos> w_pieces;
+    std::unordered_set<Pos> w_pieces_non_volatile;
+
     Piece* w_king;
     Piece* b_king;
 
