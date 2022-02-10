@@ -26,6 +26,7 @@ public:
     const PIECE piece_at(const Chess::Pos&) ;// wymysl cos lepszego potem
     const COLOR color_at(const Chess::Pos&) ;
     std::list<Move> movesList();
+    std::list<Move> moveList(const Chess::Pos&);
 
 
 

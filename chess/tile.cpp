@@ -9,10 +9,9 @@
 
 
 Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* chessboard)
-    :pieceType(Chess::PIECE::BLANK), position(pos),chessboard(chessboard),
+    :pieceType(Chess::PIECE::BLANK), position(pos),chessboard(chessboard),tileColor(color),
       QLabel(parent)
 {
-
     chooseTile=nullptr;
     pieceWidget=nullptr;
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
@@ -22,11 +21,19 @@ Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* 
     else                                setStyleSheet("QLabel { background-color : white; }");
 
 }
+void Tile::restore_color()
+{
+    if (tileColor==Chess::WHITE) setStyleSheet("QLabel { background-color : white; }");
+    else    setStyleSheet("QLabel { background-color : green; }");
+}
 
 
 void Tile::mousePressEvent(QMouseEvent * event)
 {
+    std::list<Chess::Move> hint= chessboard->moveList(position);
+
     emit clicked();
+    emit attacked(hint);
     if (pieceType == Chess::PIECE::BLANK) return ;
 
     QMimeData *mimeData = new QMimeData;
@@ -113,7 +120,7 @@ void Tile::dropEvent(QDropEvent* event)
     event->acceptProposedAction();
     pieceColor=chessboard->color_at(position);
     pieceType=chessboard->piece_at(position);
-    //if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
+    if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
     pieceWidget=new PieceWidget(pieceType,pieceColor,this);
     pieceWidget->show();
 
@@ -127,7 +134,11 @@ void Tile::dragEnterEvent(QDragEnterEvent* event)
 
 void Tile::placePiece(Chess::PIECE type,Chess::COLOR color)
 {
-    if (pieceWidget!=nullptr) pieceWidget->deleteLater();
+    if (pieceWidget!=nullptr)
+    {
+        pieceWidget->hide();
+        pieceWidget->deleteLater();
+    }
     pieceWidget=nullptr;
     pieceType=type;
     pieceColor=color;

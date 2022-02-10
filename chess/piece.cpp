@@ -193,6 +193,7 @@ std::list<Move> Pon::moveList(bool occupied[8][8]) const
     ls.push_back(Move(position,Pos(position.x+add,position.y)));
     ls.push_back(Move(position,Pos(position.x+add,position.y+1)));
     ls.push_back(Move(position,Pos(position.x+add,position.y-1)));
+    ls.push_back(Move(position,Pos(position.x+2*add,position.y)));
     return ls;
 }
 
@@ -222,6 +223,19 @@ std::list<Move> King::moveList(bool occupied[8][8]) const
     {
         pos = {xdist[i]+position.x,ydist[i]+position.y};
         ls.push_back(Move(position,pos));
+    }
+    if (position.y==4)
+    {
+        if (position.x==0)
+        {
+            ls.push_back(Move(position,Pos(0,2)));
+            ls.push_back(Move(position,Pos(0,6)));
+        }
+        else if (position.x==7)
+        {
+            ls.push_back(Move(position,Pos(7,2)));
+            ls.push_back(Move(position,Pos(7,6)));
+        }
     }
     return ls;
 }

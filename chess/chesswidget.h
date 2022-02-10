@@ -37,5 +37,6 @@ public slots:
     void piece_removed(const Chess::Pos&);
     void choose_promotion(const Chess::Pos&);
     void hide_promotion();
+    void under_attack(std::list<Chess::Move>);
 };
 #endif // CHESSWIDGET_H

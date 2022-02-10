@@ -241,16 +241,15 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
         }
         else
         {
-            if (enemy!=nullptr) answer=false;
-            if (abs(from.x-to.x)==2)
-            {
-                if (MOVE_TURN==WHITE && occupied[from.x+1][from.y]) answer=false;
-                if (MOVE_TURN==BLACK && occupied[from.x-1][from.y]) answer=false;
-            }
-            if (answer == false)
+            if (enemy!=nullptr)
             {
                 insert_piece(enemy,to);
                 return false;
+            }
+            if (abs(from.x-to.x)==2)
+            {
+                if (MOVE_TURN==WHITE && occupied[from.x+1][from.y]) return false;
+                if (MOVE_TURN==BLACK && occupied[from.x-1][from.y]) return false;
             }
         }
 
@@ -559,11 +558,11 @@ std::list<Move> ChessBoard::movesList()
     if ( MOVE_TURN==WHITE)
     {
         \
-        for (Pos pos : w_pieces)
+        for (const Pos &pos : w_pieces_non_volatile)
         {
             moves=pieces[pos]->moveList(occupied);
-            //for (auto it=begin(moves);it!=end(moves);it++)
-              //  if (!is_legal_neutral(*it)) it =moves.erase(it);
+            for (auto it=begin(moves);it!=end(moves);it++)
+               if (!is_legal_neutral(*it)) it =moves.erase(it);
 
 
             ans.merge(moves);
@@ -571,15 +570,32 @@ std::list<Move> ChessBoard::movesList()
     }
     else
     {
-        for (Pos pos : w_pieces)
+        for (const Pos &pos : w_pieces_non_volatile)
         {
             moves=pieces[pos]->moveList(occupied);
-           // for (auto it=begin(moves);it!=end(moves);it++)
-             //   if (!is_legal_neutral(*it)) it =moves.erase(it);
+            for (auto it=begin(moves);it!=end(moves);it++)
+                if (!is_legal_neutral(*it)) it =moves.erase(it);
 
             ans.merge(moves);
         }
     }
     return ans;
+}
+
+std::list<Move> ChessBoard::moveList(const Chess::Pos& pos)
+{
+    std::list<Move> moves;
+    if (pieces.find(pos)==pieces.end()) return moves;
+    moves=pieces[pos]->moveList(occupied);
+    for (auto it=begin(moves);it!=end(moves);)
+    {
+       if (!is_legal_neutral(*it))
+       {
+           it =moves.erase(it);
+           continue;
+       }
+       it++;
+    }
+    return moves;
 }
 

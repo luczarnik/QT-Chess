@@ -24,8 +24,10 @@ public:
     void hide_context_menu();
     void setChooseTile(ChooseTile* ch) {chooseTile=ch;}
     void removeChooseTile() {chooseTile=nullptr;}
+    void restore_color();
 signals:
     void clicked();
+    void attacked(std::list<Chess::Move>);
 
 private:
     Chess::COLOR pieceColor;
@@ -34,6 +36,7 @@ private:
     Chess::Pos position;
     Chess::ChessBoard* chessboard;
     ChooseTile* chooseTile;
+    Chess::COLOR tileColor;
 
     void setEmoty();
     void setFigure(QImage image);
