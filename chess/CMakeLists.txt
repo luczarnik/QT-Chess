@@ -27,6 +27,8 @@ set(PROJECT_SOURCES
 
         choosetile.h        choosetile.cpp
 )
+qt6_add_resources(PROJECT_SOURCES
+    resource.qrc)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Chess

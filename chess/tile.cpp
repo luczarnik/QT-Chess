@@ -6,6 +6,7 @@
 #include "QBoxLayout"
 #include "QTextCursor"
 #include "choosetile.h"
+#include "QApplication"
 
 
 Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* chessboard)
@@ -19,22 +20,54 @@ Tile::Tile(QWidget* parent,Chess::COLOR color,Chess::Pos pos,Chess::ChessBoard* 
     //new QBoxLayout(QBoxLayout::LeftToRight,this);
     if (color == Chess::COLOR::BLACK)   setStyleSheet("QLabel { background-color : green; }");
     else                                setStyleSheet("QLabel { background-color : white; }");
+    underAttack=false;
 
 }
 void Tile::restore_color()
 {
     if (tileColor==Chess::WHITE) setStyleSheet("QLabel { background-color : white; }");
     else    setStyleSheet("QLabel { background-color : green; }");
+    underAttack=false;
 }
 
 
 void Tile::mousePressEvent(QMouseEvent * event)
 {
+    if (underAttack)
+    {
+        chessboard->move(attackedFrom,position);
+        emit clicked();
+        placePiece(chessboard->piece_at(position),chessboard->color_at(position));
+        repaint();
+        return;
+    }
+
+    if (pieceType == Chess::PIECE::BLANK) return ;
+
+
+    dragStartPosition=event->pos();
+}
+
+void Tile::mouseReleaseEvent(QMouseEvent *event)
+{
+    emit clicked();
     std::list<Chess::Move> hint= chessboard->moveList(position);
+    emit attacked(position,hint);
+}
+
+void Tile::mouseMoveEvent(QMouseEvent* event)
+{
+    if (!(event->buttons() & Qt::LeftButton))
+            return;
+
+    if ((event->pos() - dragStartPosition).manhattanLength()
+             < QApplication::startDragDistance())
+            return;
+    if (pieceType==Chess::BLANK) return;
 
     emit clicked();
-    emit attacked(hint);
-    if (pieceType == Chess::PIECE::BLANK) return ;
+    std::list<Chess::Move> hint= chessboard->moveList(position);
+    emit attacked(position,hint);
 
     QMimeData *mimeData = new QMimeData;
     QByteArray itemData;
@@ -46,22 +79,6 @@ void Tile::mousePressEvent(QMouseEvent * event)
     itemData.clear();
     dataStream << pieceWidget->getColor();
     mimeData->setData("color",itemData);
-
-/*
-    Chess::PIECE type; Chess::COLOR color;
-    QByteArray arr;
-    QDataStream outstream(&arr,QIODevice::ReadOnly);
-    arr.clear();
-    arr=mimeData->data("color");
-    outstream >>  color;
-    arr.clear();
-    arr=mimeData->data("type");
-    outstream >> type;
-
-
-    qInfo()<<type<<color<<pieceWidget->getType()<< pieceWidget->getColor()<<" original";
-    qInfo()<<mimeData->hasFormat("type");*/
-
     itemData.clear();
     dataStream << position.x<<position.y;
     mimeData->setData("pos",itemData);
@@ -93,12 +110,11 @@ void Tile::mousePressEvent(QMouseEvent * event)
         pieceWidget->deleteLater();
         pieceWidget=nullptr;
     }
-
-    event->ignore();
 }
 
 void Tile::dropEvent(QDropEvent* event)
 {
+    emit clicked();
     Chess::PIECE type;
     Chess::COLOR color;
     Chess::Pos from;
@@ -154,4 +170,12 @@ void Tile::resizeEvent(QResizeEvent *event)
 
     if (chooseTile == nullptr) return;
     chooseTile->resizeEvent(event);
+}
+
+void Tile::enhanceWith(const Chess::Pos& pos)
+{
+    attackedFrom=pos;
+    if (pieceType== Chess::BLANK) setStyleSheet("QLabel { background-color : blue; }");
+    else setStyleSheet("QLabel { background-color : red; }");
+    underAttack=true;
 }

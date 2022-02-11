@@ -47,6 +47,7 @@ private:
     void switch_turn();
 
     Pos en_passant[2];
+    Pos en_passant_source;
     bool b_en_passant;
     bool about_to_en_passant;
     void perform_en_passant(const Pos& Pos);

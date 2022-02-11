@@ -17,6 +17,7 @@ public:
 
     Tile(QWidget* parent, Chess::COLOR, Chess::Pos,Chess::ChessBoard*);
     void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
     void dropEvent(QDropEvent*) override;
     void dragEnterEvent(QDragEnterEvent*) override;
     void placePiece(Chess::PIECE,Chess::COLOR);
@@ -25,18 +26,23 @@ public:
     void setChooseTile(ChooseTile* ch) {chooseTile=ch;}
     void removeChooseTile() {chooseTile=nullptr;}
     void restore_color();
+    void enhanceWith(const Chess::Pos& pos);
+    void mouseReleaseEvent(QMouseEvent *event);
 signals:
     void clicked();
-    void attacked(std::list<Chess::Move>);
+    void attacked(const Chess::Pos&,std::list<Chess::Move>);
 
 private:
     Chess::COLOR pieceColor;
     Chess::PIECE pieceType;
     PieceWidget *pieceWidget;
     Chess::Pos position;
+    Chess::Pos attackedFrom;
+    bool underAttack;
     Chess::ChessBoard* chessboard;
     ChooseTile* chooseTile;
     Chess::COLOR tileColor;
+    QPoint dragStartPosition;
 
     void setEmoty();
     void setFigure(QImage image);

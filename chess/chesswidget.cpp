@@ -52,6 +52,7 @@ ChessWidget::ChessWidget(QWidget *parent)
 
     for (int i=0;i<4;i++) promotionTile[i]=nullptr;
     connect(chessboard,&ChessBoard::promotion,this,&ChessWidget::choose_promotion);
+    attacking_piece=Pos(-1,-1);
 }
 
 void ChessWidget::load_chessboard()
@@ -117,6 +118,10 @@ void ChessWidget::choose_promotion(const Pos& pos)
 
 void ChessWidget::hide_promotion()
 {
+    if (attacking_piece!=Pos(-1,-1))
+        tiles[attacking_piece]->placePiece(chessboard->piece_at(attacking_piece),
+                                       chessboard->color_at(attacking_piece));
+
     for (auto elem : tiles)
     {
         elem.second->restore_color();
@@ -138,10 +143,8 @@ void ChessWidget::hide_promotion()
     repaint();
 }
 
-void ChessWidget::under_attack(std::list<Chess::Move> moves)
+void ChessWidget::under_attack(const Chess::Pos& pos,std::list<Chess::Move> moves)
 {
-    for (const Chess::Move& move: moves)
-    {
-        tiles[move.to]->setStyleSheet("QLabel { background-color : red; }");
-    }
+    attacking_piece=pos;
+    for (const Chess::Move& move: moves)    tiles[move.to]->enhanceWith(pos);
 }

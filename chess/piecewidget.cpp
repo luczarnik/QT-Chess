@@ -12,7 +12,7 @@ PieceWidget::PieceWidget(Chess::PIECE type,Chess::COLOR color,QWidget* parent)
         return;
     resize(parent->size());
 
-    QPixmap pixmap("D:/Qt Projects/chessView/resources/pieces.png","png");
+    QPixmap pixmap(":/images/resources/pieces.png","png");
 
 
     graphicRepresentation= new QPixmap(pixmap.copy(type*200,color*200,200,200));//potential leak

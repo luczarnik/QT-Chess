@@ -30,6 +30,7 @@ private:
 
     bool promotion_menu_active;
     Chess::Pos promotion_position;
+    Chess::Pos attacking_piece;
     ChooseTile* promotionTile[4];
 
 public slots:
@@ -37,6 +38,6 @@ public slots:
     void piece_removed(const Chess::Pos&);
     void choose_promotion(const Chess::Pos&);
     void hide_promotion();
-    void under_attack(std::list<Chess::Move>);
+    void under_attack(const  Chess::Pos&,std::list<Chess::Move>);
 };
 #endif // CHESSWIDGET_H

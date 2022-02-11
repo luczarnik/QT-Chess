@@ -153,7 +153,7 @@ bool ChessBoard::move(const Pos& from, const Pos& to )
             b_en_passant=true;
             if (is_in_board(Pos(to.x,to.y-1)))  en_passant[0]=Pos(to.x,to.y-1);
             if (is_in_board(Pos(to.x,to.y+1)))  en_passant[1]=Pos(to.x,to.y+1);
-
+            en_passant_source=to;
         }
 
     }
@@ -224,6 +224,7 @@ bool ChessBoard::is_legal(const Pos& from, const Pos& to)
                 if (can_en_passant(from)) // if can enpassant then on pos "to" there certainly is no enemy,
                     //so we can return withowt carring about potentialy deleted enemy pon like in other cases
                 {
+                    if (to.y!=en_passant_source.y) return false;
                     about_to_en_passant=true;
                     if (from==en_passant[0])
                     {
