@@ -31,6 +31,9 @@ public:
 signals:
     void clicked();
     void attacked(const Chess::Pos&,std::list<Chess::Move>);
+    void refresh(const Chess::Pos&);
+    void promotion(const Chess::Pos&, const Chess::Pos&);
+    void madeMove();
 
 private:
     Chess::COLOR pieceColor;

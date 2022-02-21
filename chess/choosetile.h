@@ -12,7 +12,7 @@ class ChooseTile : public QLabel
     Q_OBJECT
 public:
     ChooseTile(QWidget *Parent,Chess::PIECE piece,
-                           Chess::COLOR color, Chess::ChessBoard* chessboard);
+                           Chess::COLOR color,const Chess::Pos&,const Chess::Pos&, Chess::ChessBoard* chessboard);
     void resizeEvent(QResizeEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
 signals:
@@ -24,6 +24,12 @@ private:
     Chess::PIECE pieceType;
     PieceWidget *pieceWidget;
     Chess::ChessBoard* chessboard;
+    Chess::Pos position;
+    Chess::Pos attacked;
+
+signals:
+    void refresh(const Chess::Pos&);
+    void madeMove();
 };
 
 #endif // CHOOSETILE_H

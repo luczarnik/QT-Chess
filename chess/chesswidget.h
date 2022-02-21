@@ -6,6 +6,7 @@
 #include "chessboard.h"
 #include "tile.h"
 #include "utils.h"
+#include "stockokon.h"
 
 
 
@@ -13,7 +14,7 @@ class ChessWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ChessWidget(QWidget *parent = nullptr);
+    ChessWidget(COLOR side, bool singlePlayer,QWidget *parent = nullptr);
     ~ChessWidget(){}
 
     void addModel( Chess::ChessBoard*);
@@ -24,9 +25,13 @@ public:
 
 private:
     Chess::ChessBoard *chessboard;
+    StockOkon* bot;
+    bool singlePlayer;
+    COLOR side;
+
 
     std::unordered_map<Chess::Pos,Tile*> tiles;
-    void load_chessboard();
+
 
     bool promotion_menu_active;
     Chess::Pos promotion_position;
@@ -34,10 +39,12 @@ private:
     ChooseTile* promotionTile[4];
 
 public slots:
-    void piece_added(const Chess::Pos&);
-    void piece_removed(const Chess::Pos&);
-    void choose_promotion(const Chess::Pos&);
+    void refresh(const Chess::Pos&);
+    void choose_promotion(const Chess::Pos&,const Pos& attacked);
     void hide_promotion();
     void under_attack(const  Chess::Pos&,std::list<Chess::Move>);
+    void load_chessboard();
+    void stalemate();
+    void checkmate(COLOR);
 };
 #endif // CHESSWIDGET_H

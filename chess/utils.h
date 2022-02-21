@@ -7,6 +7,7 @@
 #include "Qt"
 #include "qmetatype.h"
 #include <iostream>
+#include <sstream>
 
 
 namespace Chess
@@ -37,6 +38,7 @@ namespace Chess
         {
             return 8*x+y;
         }
+        friend std::ostream& operator<<(std::ostream&,const Pos&);
     };
     struct Move
     {

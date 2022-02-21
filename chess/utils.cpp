@@ -41,3 +41,10 @@ bool Chess::is_nonpenetrable(const PIECE& piece)
 {
     return piece==KNIGHT || piece == PON;
 }
+
+std::ostream& Chess::operator<<(std::ostream& s,const Pos& pos)
+{
+    char row = (char)((int)'A'+pos.y);
+    s<<row<<pos.x;
+    return s;
+}

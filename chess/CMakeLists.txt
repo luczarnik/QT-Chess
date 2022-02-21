@@ -20,16 +20,18 @@ set(PROJECT_SOURCES
 
         chessboard.h        chessboard.cpp
         piece.h             piece.cpp
+        stockokon.h         stockokon.cpp
 
         chesswidget.h       chesswidget.cpp
         tile.h              tile.cpp
         piecewidget.h       piecewidget.cpp
 
         choosetile.h        choosetile.cpp
-)
-qt6_add_resources(PROJECT_SOURCES
-    resource.qrc)
+        metamove.h
+        resource.qrc
 
+        frame.ui frame.h frame.cpp
+)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Chess
         MANUAL_FINALIZATION

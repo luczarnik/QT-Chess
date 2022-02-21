@@ -8,6 +8,10 @@
 #include <set>
 #include "QObject"
 #include <list>
+#include "fstream"
+#include <stack>
+#include "metamove.h"
+
 
 namespace Chess
 {
@@ -19,14 +23,16 @@ class ChessBoard : public QObject
 public:
     explicit ChessBoard(QObject*);
 
-    bool is_legal(const Chess::Pos& from,const Chess::Pos& to) ; // does piece move outside board or ally location or discovers check for own king ?
-    bool is_legal_neutral(const Chess::Move);
+    bool is_legal(const Chess::Pos& from, Chess::Pos to);
     bool is_mate() const;
-    bool move(const Chess::Pos& from,const  Chess::Pos&to);
+    void move(const Chess::Pos& from, Chess::Pos to);//should be provided only with legal moves - otherwise undefined behavior
     const PIECE piece_at(const Chess::Pos&) ;// wymysl cos lepszego potem
     const COLOR color_at(const Chess::Pos&) ;
     std::list<Move> movesList();
     std::list<Move> moveList(const Chess::Pos&);
+    int evaluate();
+    COLOR side() {return MOVE_TURN;}
+    void check_status();
 
 
 
@@ -42,23 +48,16 @@ private:
     bool castle(const Pos& pos);
     bool castle_rook(const Pos&);
     void perform_castle(const Pos&);
-    bool about_to_castle;
     Chess::COLOR MOVE_TURN;
     void switch_turn();
 
-    Pos en_passant[2];
     Pos en_passant_source;
     bool b_en_passant;
-    bool about_to_en_passant;
-    void perform_en_passant(const Pos& Pos);
-    bool can_en_passant(const Pos& Pos);
 
-    Pos promotion_from;
-    Pos promotion_to;
 
     bool w_checked_by_penetrable;
     bool w_checked_by_normal;
-    bool b_ckecked_by_penetrable;
+    bool b_checked_by_penetrable;
     bool b_checked_by_normal;
     std::unordered_map<Chess::Pos,Chess::Piece*> pieces;
 
@@ -82,6 +81,11 @@ private:
     Piece* b_king_attacked_by_non_penetrable;
     Piece* w_king_attacked_by_non_penetrable;
 
+    std::fstream debug_output;
+
+    std::stack<MetaMove> moves;
+    void registerMove(const Pos& from, const Pos& to);
+
 
     friend class Knight;
     friend class Pon;
@@ -91,22 +95,13 @@ private:
     friend class Queen;
 
 public slots:
-    void promote(PIECE piece);
+    void undoMove();
 
-public :
+public:
 signals:
-    // in most cases view can by itself easly display and hide pieces due to drag and drop implementation, but special moves like castle
-    // requires addditional steps which are taken in chess engine so there is no need to implement them once again
-    // in view
-    void s_remove_piece(const Pos& pos);
-    void s_add_piece(const Pos& pos);
 
-    void promotion(const Pos& to);
-
-
-   // void s_checkmate();
-    //void s_stalemate();
-
+    void stalemate();
+    void checkmate(COLOR);
 };
 
 }

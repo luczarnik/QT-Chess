@@ -17,7 +17,7 @@ public:
     explicit Piece(Chess::PIECE piece, Chess::COLOR color, Chess::Pos pos)
         : color(color), type(piece), position(pos){};
 
-    virtual bool is_legal(const Chess::Pos& pos) const  = 0; // does this piece can move like this ?
+    virtual bool is_legal(const Chess::Pos& pos, bool occupied[8][8]) const  = 0; // does this piece can move like this ?
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const = 0 ;
     PIECE get_type() const {return type;}
     COLOR get_color() const {return color;}
@@ -37,7 +37,7 @@ public:
     explicit Pon(Chess::COLOR COLOR,Chess::Pos pos)
         : Piece(Chess::PIECE::PON,COLOR, pos){}
 
-    virtual bool is_legal(const Chess::Pos& pos)  const ;
+    virtual bool is_legal(const Chess::Pos& pos, bool occupied[8][8])  const ;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const ;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
@@ -48,7 +48,7 @@ public:
     explicit Knight( Chess::COLOR COLOR, Chess::Pos pos)
         : Piece(Chess::PIECE::KNIGHT,COLOR,pos){}
 
-    virtual bool is_legal(const Chess::Pos& to) const;
+    virtual bool is_legal(const Chess::Pos& to, bool occupied[8][8]) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
@@ -59,12 +59,13 @@ public:
     explicit Rook( Chess::COLOR COLOR, Chess::Pos pos)
         : castle(true),Piece(Chess::PIECE::ROOK,COLOR,pos){}
 
-    virtual bool is_legal(const Chess::Pos& to) const;
+    virtual bool is_legal(const Chess::Pos& to, bool occupied[8][8]) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 
     bool can_castle() {return castle;}
-    void forbidd_castle() {castle=false;}
+    void forbidd_castle() {castle = false;}
+    void allow_castle() {castle = true;}
 };
 class Queen  : public Piece
 {
@@ -72,7 +73,7 @@ public:
     explicit Queen(Chess::COLOR COLOR, Chess::Pos pos)
         : Piece(Chess::PIECE::QUEEN,COLOR,pos){}
 
-    virtual bool is_legal(const Chess::Pos& to) const;
+    virtual bool is_legal(const Chess::Pos& to, bool occupied[8][8]) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
@@ -82,7 +83,7 @@ public:
     explicit Bishop(Chess::COLOR COLOR, Chess::Pos pos)
         : Piece(Chess::PIECE::BISHOP,COLOR,pos){}
 
-    virtual bool is_legal(const Chess::Pos& to) const;
+    virtual bool is_legal(const Chess::Pos& to, bool occupied[8][8]) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 };
@@ -93,13 +94,14 @@ public:
     explicit King(Chess::COLOR COLOR, const Chess::Pos pos)
         :castle(true),Piece(Chess::PIECE::KING,COLOR,pos){}
 
-    virtual bool is_legal(const Chess::Pos& to) const;
+    virtual bool is_legal(const Chess::Pos& to, bool occupied[8][8]) const;
     virtual void mark_attacked(bool chessboard[8][8], bool occupied[8][8]) const;
     virtual std::list<Move> moveList(bool occupied[8][8]) const;
 
 
     bool can_castle() {return castle;}
-    void forbidd_castle() {castle=false;}
+    void forbidd_castle() {castle = false;}
+    void allow_castle() {castle = true;}
 };
 
 }

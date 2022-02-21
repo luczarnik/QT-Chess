@@ -4,8 +4,8 @@
 #include <QVBoxLayout>
 
 ChooseTile::ChooseTile(QWidget *parent,Chess::PIECE piece,
-                       Chess::COLOR color, Chess::ChessBoard* chessboard)
-    :pieceType(piece),pieceColor(color),QLabel(parent)
+                       Chess::COLOR color,const Chess::Pos& position, const Chess::Pos& attacked, Chess::ChessBoard* chessboard)
+    :chessboard(chessboard),pieceType(piece),pieceColor(color),position(position),attacked(attacked),QLabel(parent)
 {
     pieceWidget=nullptr;
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
@@ -16,7 +16,6 @@ ChooseTile::ChooseTile(QWidget *parent,Chess::PIECE piece,
 
     pieceWidget->show();
 
-    connect(this,&ChooseTile::chosen,chessboard,&Chess::ChessBoard::promote);
 }
 
 void ChooseTile::resizeEvent(QResizeEvent *event)
@@ -30,6 +29,30 @@ void ChooseTile::resizeEvent(QResizeEvent *event)
 void ChooseTile::mousePressEvent(QMouseEvent *ev)
 {
     emit clicked();
-    emit chosen(pieceType);
 
+    if (position.x==7)
+    {
+        switch(pieceType)
+        {
+        case Chess::QUEEN: chessboard->move(attacked,position); break;
+        case Chess::ROOK: chessboard->move(attacked,Chess::Pos(position.x+1,position.y)); break;
+        case Chess::KNIGHT: chessboard->move(attacked,Chess::Pos(position.x+2,position.y)); break;
+        case Chess::BISHOP: chessboard->move(attacked,Chess::Pos(position.x+3,position.y)); break;
+        }
+    }
+
+    else if (position.x==0)
+    {
+        switch(pieceType)
+        {
+        case Chess::QUEEN: chessboard->move(attacked,position); break;
+        case Chess::ROOK: chessboard->move(attacked,Chess::Pos(position.x-1,position.y)); break;
+        case Chess::KNIGHT: chessboard->move(attacked,Chess::Pos(position.x-2,position.y)); break;
+        case Chess::BISHOP: chessboard->move(attacked,Chess::Pos(position.x-3,position.y)); break;
+        }
+    }
+
+    emit refresh(attacked);
+    emit refresh(position);
+    emit madeMove();
 }

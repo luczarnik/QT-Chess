@@ -35,9 +35,44 @@ void Tile::mousePressEvent(QMouseEvent * event)
 {
     if (underAttack)
     {
-        chessboard->move(attackedFrom,position);
+        Chess::PIECE type =chessboard->piece_at(attackedFrom);
+        Chess::COLOR color =chessboard->color_at(attackedFrom);
+
+
+
         emit clicked();
-        placePiece(chessboard->piece_at(position),chessboard->color_at(position));
+        if (type== Chess::PON && (position.x==7 && attackedFrom.x==6 || position.x==0 && attackedFrom.x==1))
+        {
+            placePiece(Chess::BLANK,Chess::WHITE);
+            underAttack=true;
+            emit promotion(position,attackedFrom);
+            return;
+        }
+
+        chessboard->move(attackedFrom,position);
+        chessboard->check_status();
+        emit madeMove();
+        emit refresh(attackedFrom);
+        emit refresh(position);
+
+        if (type == Chess::PON && attackedFrom.y!=position.y)//en passant
+            emit refresh(Chess::Pos(attackedFrom.x,position.y));
+        else if (type == Chess:: KING && abs(attackedFrom.y-position.y)==2)
+        {
+            if (position.y==2)
+            {
+                emit refresh(Chess::Pos(position.x,0));
+                emit refresh(Chess::Pos(position.x,3));
+            }
+            else
+            {
+                emit refresh(Chess::Pos(position.x,5));
+                emit refresh(Chess::Pos(position.x,7));
+            }
+        }
+
+
+        placePiece(type,color);
         repaint();
         return;
     }
@@ -50,6 +85,7 @@ void Tile::mousePressEvent(QMouseEvent * event)
 
 void Tile::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (underAttack) return;
     emit clicked();
     std::list<Chess::Move> hint= chessboard->moveList(position);
     emit attacked(position,hint);
@@ -107,7 +143,7 @@ void Tile::mouseMoveEvent(QMouseEvent* event)
     else
     {
         pieceType=Chess::PIECE::BLANK;
-        pieceWidget->deleteLater();
+        if (pieceWidget!=nullptr)pieceWidget->deleteLater();
         pieceWidget=nullptr;
     }
 }
@@ -130,15 +166,38 @@ void Tile::dropEvent(QDropEvent* event)
     buffer=mime->data("pos"); stream>>from.x>>from.y;
 
 
+    if (!chessboard->is_legal(from,position)) return;
+    if (type== Chess::PON && (position.x==7 && from.x==6 || position.x==0 && from.x==1))
+    {
+        emit promotion(position,from);
+        return;
+    }
 
-    if (!chessboard->move(from,position)) return;
+    chessboard->move(from,position);
+    chessboard->check_status();
+    emit madeMove();
+
+    if (type == Chess::PON && from.y!=position.y)//en passant
+        emit refresh(Chess::Pos(from.x,position.y));
+
+    else if (type == Chess:: KING && abs(from.y-position.y)==2)
+    {
+        if (position.y==2)
+        {
+            emit refresh(Chess::Pos(position.x,0));
+            emit refresh(Chess::Pos(position.x,3));
+        }
+        else
+        {
+            emit refresh(Chess::Pos(position.x,5));
+            emit refresh(Chess::Pos(position.x,7));
+        }
+    }
 
     event->acceptProposedAction();
     pieceColor=chessboard->color_at(position);
     pieceType=chessboard->piece_at(position);
-    if (pieceWidget!=nullptr)   pieceWidget->deleteLater();
-    pieceWidget=new PieceWidget(pieceType,pieceColor,this);
-    pieceWidget->show();
+    placePiece(pieceType,pieceColor);
 
 }
 
