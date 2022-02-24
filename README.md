@@ -33,6 +33,12 @@ TODO:
     - Alfa-beta prunning
     - Rejecting permutations
     - Playing known openins
+- Networking
+    - server side: matchmaking, connecting players
+    - communication of game
+    - client side: connecting with server
+    - displaying current game state
+    - communicating server about moves
 
 
 
