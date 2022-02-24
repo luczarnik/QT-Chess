@@ -1,6 +1,6 @@
 #Chees game QT
 
-![plansza]("/game.png")
+![plansza](game.png)
 
 This is implementation of chess game. 
 
@@ -16,7 +16,7 @@ It provides:
 
 TODO:
 
-- Optimalization of engine
+- optimization of engine
     - considering different way of storing pieces
     - template version of checking legity of move for each piece and color
 - Chessboard configuration
