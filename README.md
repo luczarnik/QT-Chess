@@ -1,5 +1,10 @@
 #Chees game QT
 
+
+
+
+
+
 ![plansza](game.png)
 
 This is implementation of chess game. 
